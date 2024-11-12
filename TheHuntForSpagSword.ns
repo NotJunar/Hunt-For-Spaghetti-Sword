@@ -1,0 +1,98 @@
+# random rpg game I made on NoodleScripts (https://github.com/OfficialCodeNoodles/NoodleScript/blob/main/README.md?plain=1), my inspiration for Terfah.
+noodle playerHealth = 100
+noodle playerAttack = 10
+noodle playerDefense = 5
+noodle playerLevel = 1
+noodle playerGold = 0
+noodle inventory = ["Healing Potion"]
+noodle enemies = [
+  ["Spaghetti Monster", 30, 8, 2],
+  ["Garlic Golem", 50, 12, 4],
+  ["Meatball Minotaur", 80, 15, 6],
+  ["Lasagna Leviathan", 100, 20, 8]
+]
+
+serve("Welcome, brave adventurer, to the Quest for the Spaghetti Sword!\n")
+serve("Defeat monsters, collect loot, and become the greatest hero!\n")
+
+recipe showStats()
+  serve("Health: " + str(playerHealth) + "\n")
+  serve("Attack: " + str(playerAttack) + "\n")
+  serve("Defense: " + str(playerDefense) + "\n")
+  serve("Level: " + str(playerLevel) + "\n")
+  serve("Gold: " + str(playerGold) + "\n")
+  serve("Inventory: " + str(inventory) + "\n")
+eat
+
+recipe combat(noodle enemy)
+  noodle enemyName = at(enemy 0)
+  noodle enemyHealth = at(enemy 1)
+  noodle enemyAttack = at(enemy 2)
+  noodle enemyDefense = at(enemy 3)
+  serve("A wild " + enemyName + " appears!\n")
+  while enemyHealth > 0 and playerHealth > 0
+    serve("What will you do? (attack/run)\n")
+    noodle action = receive()
+    if action == "attack"
+      noodle damageToEnemy = playerAttack - enemyDefense
+      if damageToEnemy < 0
+        damageToEnemy = 0
+      enemyHealth = enemyHealth - damageToEnemy
+      serve("You hit the " + enemyName + " for " + str(damageToEnemy) + " damage!\n")
+      if enemyHealth <= 0
+        serve(enemyName + " has been defeated!\n")
+        noodle goldEarned = 20 * playerLevel
+        playerGold = playerGold + goldEarned
+        serve("You earned " + str(goldEarned) + " gold!\n")
+        eat
+      noodle damageToPlayer = enemyAttack - playerDefense
+      if damageToPlayer < 0
+        damageToPlayer = 0
+      playerHealth = playerHealth - damageToPlayer
+      serve("The " + enemyName + " hits you for " + str(damageToPlayer) + " damage!\n")
+      if playerHealth <= 0
+        serve("You have been defeated... Game Over!\n")
+        eat
+    else if action == "run"
+      serve("You escaped from the " + enemyName + "!\n")
+      eat
+    eat
+  eat
+eat
+
+recipe levelUp()
+  playerLevel = playerLevel + 1
+  playerHealth = playerHealth + 20
+  playerAttack = playerAttack + 5
+  playerDefense = playerDefense + 2
+  serve("Congratulations! You leveled up to level " + str(playerLevel) + "!\n")
+  showStats()
+eat
+
+while playerHealth > 0
+  serve("Choose an action: (explore/shop/stats/quit)\n")
+  noodle choice = receive()
+  if choice == "explore"
+    noodle enemy = at(enemies floor(num(len(enemies)) * num(rand())))
+    combat(enemy)
+    if playerHealth > 0 and playerLevel < 5
+      levelUp()
+  else if choice == "shop"
+    serve("Welcome to the shop! What would you like to buy? (potion - 10 gold)\n")
+    noodle item = receive()
+    if item == "potion" and playerGold >= 10
+      append(inventory "Healing Potion")
+      playerGold = playerGold - 10
+      serve("You bought a Healing Potion!\n")
+    else
+      serve("You don't have enough gold!\n")
+    eat
+  else if choice == "stats"
+    showStats()
+  else if choice == "quit"
+    serve("Thank you for playing!\n")
+    break
+  else
+    serve("Invalid option!\n")
+  eat
+eat
